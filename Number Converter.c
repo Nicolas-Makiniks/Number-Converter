@@ -737,6 +737,23 @@ void clearBuffer() {
 	while ((clearBuffer = getchar()) != '\n' && clearBuffer != EOF) {}
 }
 
+//Limpar lixo de memória após um novo registro
+void clearVariable(char *userStr) {
+	int i = 0;
+	
+	//Encontrar o final da entrada
+	for (; i <= (MAX_STRING_NUMBER + 1); i++) {
+
+		//Apagar lixo de memória após o final da entrada
+		if (userStr[i] == '\0') {
+			for (; i <= (MAX_STRING_NUMBER + 1); i++) {
+				userStr[i] = '\0';
+			}
+			return;
+		}
+	}
+}
+
 //Realizando a leitura e manipulação do primeiro vetor através de ponteiros
 void getUserInput(char* userStr) {
 	//Limpando entradas anteriores
@@ -747,6 +764,7 @@ void getUserInput(char* userStr) {
 
 	//Limitando a entrada para sempre ser adicionado '\0' ao final da string/char[]
 	(void)scanf("%7s", userStr);
+	clearVariable(userStr);
 	clearBuffer();
 
 	// Verificando se o usuário digitou exit corretamente para sair
