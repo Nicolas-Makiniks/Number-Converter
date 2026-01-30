@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -91,54 +93,6 @@ int historyMenu(void);
 
 int nBaseToDecimal(int userBase, int userPow, int numToPow);
 
-
-//Apenas controlar a "paginação"
-void clearScreen() {
-	system("pause");
-	system("cls");
-}
-
-void exitConveror() {
-	printf("\nEncerrando o programa...\n");
-	exit(0);
-}
-
-/*
-	Vou comentar que apanhei muito pra aprender sobre este buffer em C
-	eu esperava que isso já fosse tratado pelas bibliotecas ou compilador,
-	esta função foi criada especificamente para limpar os inputs do usuário
-	caso ele digite algo inesperado OUUUU de alguma forma leia um arquivo.
-
-	Esta função realiza o "descarte" de tudo que estiver no buffer
-	até ser encontrado uma quebra de linha (\n ou 0X0D0A para Windows) ou fim de arquivo (EOF)
-	para que isto não interfira na próxima leitura de um input do usuário
-	ou cause um loop infinito de um scanf("%d") esperando um tipo inteiro
-	pois há um tipo char esperando alocação no buffer
-
-	Isto poderia ser contornado com fgets e sscanf mas vamos manter as funções aprendidas em aula
-*/
-void clearBuffer() {
-	char clearBuffer;
-	while ((clearBuffer = getchar()) != '\n' && clearBuffer != EOF) {}
-}
-
-//Realizando a leitura e manipulação do primeiro vetor através de ponteiros
-void getUserInput(char* userStr) {
-	//Limpando entradas anteriores
-	intermediateDecimal = 0;
-	for (int i = 0; i <= MAX_STRING_NUMBER; i++) {
-		userStr[i] = 0;
-	}
-
-	//Limitando a entrada para sempre ser adicionado '\0' ao final da string/char[]
-	scanf_s("%7s", userStr, MAX_STRING_NUMBER + 1);
-	clearBuffer();
-
-	// Verificando se o usuário digitou exit corretamente para sair
-	if (userStr[0] == 'e' && userStr[1] == 'x' && userStr[2] == 'i' && userStr[3] == 't' && userStr[4] == '\0') {
-		exitConveror();
-	}
-}
 
 //Define o valor de stringSize a partir de 1 | int direction = 1 conta para direita, -1 conta para esquerda
 void stringCounter(int direction, int vectorLength, char* userStr) {
@@ -751,4 +705,52 @@ int main() {
 	}
 	printf("sai do main loop sem fechar!");
 	return 0;
+}
+
+//Apenas controlar a "paginação"
+void clearScreen() {
+	system("pause");
+	system("cls");
+}
+
+void exitConveror() {
+	printf("\nEncerrando o programa...\n");
+	exit(0);
+}
+
+/*
+	Vou comentar que apanhei muito pra aprender sobre este buffer em C
+	eu esperava que isso já fosse tratado pelas bibliotecas ou compilador,
+	esta função foi criada especificamente para limpar os inputs do usuário
+	caso ele digite algo inesperado OUUUU de alguma forma leia um arquivo.
+
+	Esta função realiza o "descarte" de tudo que estiver no buffer
+	até ser encontrado uma quebra de linha (\n ou 0X0D0A para Windows) ou fim de arquivo (EOF)
+	para que isto não interfira na próxima leitura de um input do usuário
+	ou cause um loop infinito de um scanf("%d") esperando um tipo inteiro
+	pois há um tipo char esperando alocação no buffer
+
+	Isto poderia ser contornado com fgets e sscanf mas vamos manter as funções aprendidas em aula
+*/
+void clearBuffer() {
+	char clearBuffer;
+	while ((clearBuffer = getchar()) != '\n' && clearBuffer != EOF) {}
+}
+
+//Realizando a leitura e manipulação do primeiro vetor através de ponteiros
+void getUserInput(char* userStr) {
+	//Limpando entradas anteriores
+	intermediateDecimal = 0;
+	for (int i = 0; i <= MAX_STRING_NUMBER; i++) {
+		userStr[i] = 0;
+	}
+
+	//Limitando a entrada para sempre ser adicionado '\0' ao final da string/char[]
+	(void)scanf("%7s", userStr);
+	clearBuffer();
+
+	// Verificando se o usuário digitou exit corretamente para sair
+	if (userStr[0] == 'e' && userStr[1] == 'x' && userStr[2] == 'i' && userStr[3] == 't' && userStr[4] == '\0') {
+		exitConveror();
+	}
 }
