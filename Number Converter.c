@@ -12,25 +12,21 @@
 
 
 //Definindo a estrutura do histórico, ainda não é a variável
-struct historyStruct
+typedef struct
 {
 	int sourceBase;
 	int targetBase;
 	char userInputString[MAX_STRING_NUMBER + 1];
 	char convertedResultString[MAX_STRING_VECTOR + 1];
-};
+} historyStruct;
 
 //Definindo a estrutura para a ordenação dos números, ainda não é a variável
-struct sortedConversionStruct
+typedef struct
 {
 	int intermediateDecimal;
 	int targetBase;
 	char convertedResultString[MAX_STRING_VECTOR + 1];
-};
-
-//Definindo as estruturas como um novo tipo de dado composto, é apenas uma formatação e ainda não é a variável
-typedef struct historyStruct historyStruct;
-typedef struct sortedConversionStruct sortedConversionStruct;
+} sortedConversionStruct;
 
 //Instanciando um vetor baseado na estrutura de dados do histórico
 historyStruct conversionHistory[MAX_HISTORY] = { 0 };
@@ -64,34 +60,328 @@ sortedConversionStruct sortedConversionResults[MAX_HISTORY] = { 0 };
 	Agora que aprendi sobre struct pretendo refatorar o código para remover a maioria das variáveis
 	para conseguir um código mais limpo e legível.
 */
-//Variáveis globais
-char userInputString[MAX_STRING_NUMBER + 1] = { '\0' }; //Armazena a entrada bruta do usuário
-char previousInputNumber[MAX_STRING_VECTOR + 1] = { '\0' }; //Armazena temporariamente a entrada anterior do usuário apenas para exibição
-char convertedResultString[MAX_STRING_VECTOR + 1] = { '\0' }; //Armazena o resultado final da conversão                Ex: F  F  7 A  0
-int inputDigitsArray[MAX_STRING_VECTOR + 1] = { 0 }; //Armazena o valor decimal de cada caracter inserido pelo usuário Ex: 15 15 7 10 0
 
-int sourceBase = 0, targetBase = 0, intermediateDecimal = 0, finalDecimalInput = 0, stringSize = 0, historyLength = 0, currentSortedListSize = 0;
-char digitCharacters[] = "0123456789ABCDEF"; //Definição do ue irá representar cada número (acho que é assim que se começa uma criptografia)
-
-
-void clearScreen(void);
-void exitConveror(void);
-void clearBuffer(void);
-void showHistory(void);
-void newConversionMenu(void);
-void showSortedConversionList(void);
-
-void getUserInput(char* userStr);
-void stringCounter(int direction, int vectorLength, char* userStr);
-void decimalToBaseN(int decimalNum, int targetBase, char* result);
-void intVectorToIntNumber(int stringSize, int numBase);
-void charToIntVector(char* userStr, int stringSize);
 void addToHistory(int srcBase, char* userInputStr, int tgtBase, char* convertedResultStr);
 void addToSortedConversion(int decimalNum, int tgtBase, char* convertedResultStr);
 
+void charToIntVector(char* userStr, int stringSize);
+void clearBuffer(void);
+void clearScreen(void);
+
+void decimalToBaseN(int decimalNum, int targetBase, char* result);
+
+void exitConveror(void);
+
+void getUserInput(char* userStr);
+int getMenuOption();
+
 int historyMenu(void);
 
+void intVectorToIntNumber(int stringSize, int numBase);
+
 int nBaseToDecimal(int userBase, int userPow, int numToPow);
+void newConversionMenu(void);
+
+void showHistory(void);
+void showSortedConversionList(void);
+void stringCounter(int direction, int vectorLength, char* userStr);
+
+int main() {
+	setlocale(LC_ALL, "portuguese");
+
+	char userInputString[MAX_STRING_NUMBER + 1] = { '\0' }; //Armazena a entrada bruta do usuário
+	char previousInputNumber[MAX_STRING_VECTOR + 1] = { '\0' }; //Armazena temporariamente a entrada anterior do usuário apenas para exibição
+	char convertedResultString[MAX_STRING_VECTOR + 1] = { '\0' }; //Armazena o resultado final da conversão                Ex: F  F  7 A  0
+	int inputDigitsArray[MAX_STRING_VECTOR + 1] = { 0 }; //Armazena o valor decimal de cada caracter inserido pelo usuário Ex: 15 15 7 10 0
+
+	int sourceBase = 0, targetBase = 0, intermediateDecimal = 0, finalDecimalInput = 0, stringSize = 0, historyLength = 0, currentSortedListSize = 0;
+	int menuOption = 0;
+	char digitCharacters[] = "0123456789ABCDEF"; //Definição do ue irá representar cada número (acho que é assim que se começa uma criptografia)
+
+	printf("Este é um conversor de números inteiros entre bases numéricas.\n");
+	printf("Ex: base de 2 (0 a 1) a base de 16 (0 a F) números.\n");
+	printf("Você pode pedir uma conversão aleatória como base 6 (0 a 5).\n\n");
+	printf("A conversão é de até %d dígitos para evitar estouro de memória.\n", MAX_STRING_NUMBER);
+	printf("A leitura é realizada da esquerda para direita,\n");
+	printf("Ex: '0123456789abcdefff' será lido '0123456'.\n\n");
+	printf("Não são aceitos valores que excedam a base Hexadecimal,\n");
+	printf("Ex: G a Z ou caracteres como @ . , - e etc.\n\n");
+	printf("Digite exit para sair a qualquer momento.\n");
+	clearScreen();
+
+	while (1) {
+		//Resetando variáveis a serem utilizadas
+		sourceBase = 0, finalDecimalInput = 0, targetBase = 0;
+
+		printf("=-=-=-=-=-=-=-=-=-= Página Inicial =-=-=-=-=-=-=-=-=-=\n");
+		printf("   1 - Nova Conversão\n");
+		printf("   2 - Histórico\n");
+		printf("   3 - Lista ordenada\n");
+		printf("exit - Sair\n");
+		printf("Escolha uma opção: ");
+
+		menuOption = getMenuOption();
+
+		switch (menuOption) {
+		case 1:
+			printf("\nRealizar nova conversão...\n");
+			clearScreen();
+			//Função para menu de conversão dedicado, evitando identações excessivas
+			newConversionMenu();
+			break;
+		case 2:
+			//Histórico vazio
+			if (conversionHistory[0].sourceBase == 0) {
+				printf("\nHistórico vazio no momento, realize uma nova conversão para visualizar.\n");
+				clearScreen();
+				break;
+			}
+			/*
+				exibir o histórico
+				selecionar posição no histórico
+				escolher entre Entrada ou Resultado
+				pegar o número e a base escolhida
+				realizar nova conversão a partir dos valores selecionados
+			*/
+
+			printf("\nExibir o histórico...\n");
+			clearScreen();
+			if (historyMenu()) {
+				newConversionMenu();
+			}
+			break;
+		case 3:
+			//Lista vazia
+			if (sortedConversionResults[0].targetBase == 0) {
+				printf("\nLista vazia no momento, realize uma nova conversão para vizualizar.\n");
+				clearScreen();
+				break;
+			}
+			/*
+				exibir a lista ordenada
+				selecionar posição na lista
+				escolher entre Entrada ou Saída
+				pegar o número e a base escolhida
+				realizar nova conversão a partir dos valores selecionados
+			*/
+			printf("\nExibir lista ordenada...\n");
+			clearScreen();
+			showSortedConversionList();
+			break;
+		case 4: // Sair
+			exitConveror();
+			break;
+		default:
+			printf("Entrada inválida!\n\n");
+			clearScreen();
+			break;
+		}
+	}
+	printf("sai do main loop sem fechar!");
+	return 0;
+}
+
+//Apenas controlar a "paginação"
+void clearScreen() {
+	system("pause");
+	system("cls");
+}
+
+//Realizando a leitura e manipulação do primeiro vetor através de ponteiros
+void getUserInput(char* userStr) {
+	//Limitando a entrada para sempre ser adicionado '\0' ao final da string/char[]
+	scanf("%7s", userStr);
+	clearBuffer();
+
+	// Verificando se o usuário digitou exit corretamente para sair
+	if (userStr[0] == 'e' && userStr[1] == 'x' && userStr[2] == 'i' && userStr[3] == 't' && userStr[4] == '\0') {
+		exitConveror();
+	}
+}
+
+/*
+	Vou comentar que apanhei muito pra aprender sobre este buffer em C
+	eu esperava que isso já fosse tratado pelas bibliotecas ou compilador,
+	esta função foi criada especificamente para limpar os inputs do usuário
+	caso ele digite algo inesperado OUUUU de alguma forma leia um arquivo.
+
+	Esta função realiza o "descarte" de tudo que estiver no buffer
+	até ser encontrado uma quebra de linha (\n ou 0X0D0A para Windows) ou fim de arquivo (EOF)
+	para que isto não interfira na próxima leitura de um input do usuário
+	ou cause um loop infinito de um scanf("%d") esperando um tipo inteiro
+	pois há um tipo char esperando alocação no buffer
+
+	Isto poderia ser contornado com fgets e sscanf mas vamos manter as funções aprendidas em aula
+*/
+void clearBuffer() {
+	char clearBuffer;
+	while ((clearBuffer = getchar()) != '\n' && clearBuffer != EOF) {}
+}
+
+void exitConveror() {
+	printf("\nEncerrando o programa...\n");
+	exit(0);
+}
+
+// Retorna -1 se a entrada não for um número,senao retorna o número digitado
+int getMenuOption() {
+	int option = -1;
+	
+	if (scanf("%d", &option) != 1) {
+		option = -1;
+	}
+
+	clearBuffer();
+
+	return option;
+}
+
+//Função dedicada a ser menu de conversão apenas para legibilidade
+void newConversionMenu(int sourceBase, char* userStr) {
+	/*
+		se não há numero e base selecionados:
+			pegar base
+			pegar numero
+			verificar se está dentro da base
+
+		pegar base destino
+		converter
+		salvar no histórico
+		salvar na lista ordenada
+	*/
+
+	//pega base
+	while (sourceBase == 0) {
+		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Seleção Primeria Base Numérica =-=-=-=-=-=-=-=-=-=\n");
+		printf("\nDe 2 a 16, escolha uma base para começar: ");
+		getUserInput(userInputString);
+		stringCounter(1, MAX_STRING_NUMBER, userInputString);
+		charToIntVector(userInputString, stringSize);
+		intVectorToIntNumber(stringSize, 10);
+
+		if (intermediateDecimal == -1) {
+			printf("\nCaracter inválido, insira novamente.\n\n");
+			clearScreen();
+			continue;
+		}
+
+		if (intermediateDecimal > 16) {
+			printf("\nO valor '%d' excede o valor máximo 16 (Hexadecimal), insira outro valor.\n\n", intermediateDecimal);
+			clearScreen();
+			continue;
+		}
+
+		if (intermediateDecimal < 2) {
+			printf("\nO valor '%d' excede o valor mínimo 2 (Binário), insira outro valor.\n\n", intermediateDecimal);
+			clearScreen();
+			continue;
+		}
+		sourceBase = intermediateDecimal;
+		printf("\nValor inserido: '%d'\n", intermediateDecimal);
+		clearScreen();
+	}
+
+	//pega o número
+	while (finalDecimalInput == 0) {
+		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Número para Conversão =-=-=-=-=-=-=-=-=-=\n");
+		printf("\nBase selecionada  : %d\n", sourceBase);
+		printf("\nDigite um número inteiro positivo: ");
+		getUserInput(userInputString);
+		stringCounter(1, MAX_STRING_NUMBER, userInputString);
+		charToIntVector(userInputString, stringSize);
+
+		//checar posições de acordo com a base
+		for (int i = 0; i < stringSize; i++) {
+			if (inputDigitsArray[i] >= sourceBase) {
+				printf("\nNúmero '%d' inserido excede a base '%d' fornecida, insira novamente.\n\n", inputDigitsArray[i], sourceBase);
+				inputDigitsArray[0] = -1;
+				break;
+			}
+		}
+		if (inputDigitsArray[0] == -1) {
+			printf("\nEntrada inválida!\n\n");
+			clearScreen();
+			continue;
+		}
+
+		/*
+			Até aqui o usuário digitou corretamente dentro da base, basta converter para decimal
+			somando a multiplicação do número em cada posição do array pela base elevada
+			a posição do número no array
+		*/
+		intVectorToIntNumber(stringSize, sourceBase);
+		finalDecimalInput = intermediateDecimal;
+
+		if (finalDecimalInput == 0) {
+			printf("\nValor '0' é equivalente entre todas as bases, insira novamente.\n\n");
+		}
+		else {
+			for (int i = 0; i < MAX_STRING_VECTOR; i++) {
+				previousInputNumber[i] = '\0';
+			}
+			for (int i = 0; i <= stringSize; i++) {
+				if (userInputString[i] != '\0' && userInputString[i] != EOF) {
+					previousInputNumber[i] = userInputString[i];
+				}
+				else {
+					previousInputNumber[i] = '\0';
+				}
+			}
+			printf("\nValor inserido: '%s'\n", previousInputNumber);
+		}
+		clearScreen();
+	}
+
+	//pega base destino
+	while (targetBase == 0) {
+		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Seleção Base Destino =-=-=-=-=-=-=-=-=-=\n");
+		printf("\nBase selecionada  : %d", sourceBase);
+		printf("\nNúmero selecionado: %s\n", previousInputNumber);
+		printf("\nEntre 2 e 16, digite uma base numérica de destino: ");
+		getUserInput(userInputString);
+		stringCounter(1, MAX_STRING_NUMBER, userInputString);
+		charToIntVector(userInputString, stringSize);
+		intVectorToIntNumber(stringSize, 10);
+
+		if (intermediateDecimal == -1) {
+			printf("\nCaracter inválido, insira novamente.\n\n");
+			clearScreen();
+			continue;
+		}
+
+		if (intermediateDecimal > 16) {
+			printf("\nO valor '%d' excede o valor máximo 16 (Hexadecimal), insira outro valor.\n\n", intermediateDecimal);
+			clearScreen();
+			continue;
+		}
+
+		if (intermediateDecimal < 2) {
+			printf("\nO valor '%d' excede o valor mínimo 2 (Binário), insira outro valor.\n\n", intermediateDecimal);
+			clearScreen();
+			continue;
+		}
+
+		if (sourceBase == intermediateDecimal) {
+			printf("\nBase original (%d) e base destino (%d) iguais! Insira outro valor.\n\n", sourceBase, intermediateDecimal);
+			clearScreen();
+			continue;
+		}
+
+		targetBase = intermediateDecimal;
+	}
+
+	/*
+		Transformar o número do usuário atualmente em decimal para a
+		base destino através da divisão sucessiva e guardando o resto da divisão
+	*/
+	decimalToBaseN(finalDecimalInput, targetBase, convertedResultString);
+	printf("\nSeu número foi convertido para %s\n", convertedResultString);
+	addToHistory(sourceBase, previousInputNumber, targetBase, convertedResultString);
+	addToSortedConversion(finalDecimalInput, targetBase, convertedResultString);
+	clearScreen();
+}
+
+
 
 
 //Define o valor de stringSize a partir de 1 | int direction = 1 conta para direita, -1 conta para esquerda
@@ -304,151 +594,6 @@ void showHistory() {
 	printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 }
 
-//Função dedicada a ser menu de conversão apenas para legibilidade
-void newConversionMenu() {
-	/*
-		se não há numero e base selecionados:
-			pegar base
-			pegar numero
-			verificar se está dentro da base
-
-		pegar base destino
-		converter
-		salvar no histórico
-		salvar na lista ordenada
-	*/
-
-	//pega base
-	while (sourceBase == 0) {
-		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Seleção Primeria Base Numérica =-=-=-=-=-=-=-=-=-=\n");
-		printf("\nDe 2 a 16, escolha uma base para começar: ");
-		getUserInput(userInputString);
-		stringCounter(1, MAX_STRING_NUMBER, userInputString);
-		charToIntVector(userInputString, stringSize);
-		intVectorToIntNumber(stringSize, 10);
-
-		if (intermediateDecimal == -1) {
-			printf("\nCaracter inválido, insira novamente.\n\n");
-			clearScreen();
-			continue;
-		}
-
-		if (intermediateDecimal > 16) {
-			printf("\nO valor '%d' excede o valor máximo 16 (Hexadecimal), insira outro valor.\n\n", intermediateDecimal);
-			clearScreen();
-			continue;
-		}
-
-		if (intermediateDecimal < 2) {
-			printf("\nO valor '%d' excede o valor mínimo 2 (Binário), insira outro valor.\n\n", intermediateDecimal);
-			clearScreen();
-			continue;
-		}
-		sourceBase = intermediateDecimal;
-		printf("\nValor inserido: '%d'\n", intermediateDecimal);
-		clearScreen();
-	}
-
-	//pega o número
-	while (finalDecimalInput == 0) {
-		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Número para Conversão =-=-=-=-=-=-=-=-=-=\n");
-		printf("\nBase selecionada  : %d\n", sourceBase);
-		printf("\nDigite um número inteiro positivo: ");
-		getUserInput(userInputString);
-		stringCounter(1, MAX_STRING_NUMBER, userInputString);
-		charToIntVector(userInputString, stringSize);
-
-		//checar posições de acordo com a base
-		for (int i = 0; i < stringSize; i++) {
-			if (inputDigitsArray[i] >= sourceBase) {
-				printf("\nNúmero '%d' inserido excede a base '%d' fornecida, insira novamente.\n\n", inputDigitsArray[i], sourceBase);
-				inputDigitsArray[0] = -1;
-				break;
-			}
-		}
-		if (inputDigitsArray[0] == -1) {
-			printf("\nEntrada inválida!\n\n");
-			clearScreen();
-			continue;
-		}
-
-		/*
-			Até aqui o usuário digitou corretamente dentro da base, basta converter para decimal
-			somando a multiplicação do número em cada posição do array pela base elevada
-			a posição do número no array
-		*/
-		intVectorToIntNumber(stringSize, sourceBase);
-		finalDecimalInput = intermediateDecimal;
-
-		if (finalDecimalInput == 0) {
-			printf("\nValor '0' é equivalente entre todas as bases, insira novamente.\n\n");
-		}
-		else {
-			for (int i = 0; i < MAX_STRING_VECTOR; i++) {
-				previousInputNumber[i] = '\0';
-			}
-			for (int i = 0; i <= stringSize; i++) {
-				if (userInputString[i] != '\0' && userInputString[i] != EOF) {
-					previousInputNumber[i] = userInputString[i];
-				}
-				else {
-					previousInputNumber[i] = '\0';
-				}
-			}
-			printf("\nValor inserido: '%s'\n", previousInputNumber);
-		}
-		clearScreen();
-	}
-
-	//pega base destino
-	while (targetBase == 0) {
-		printf("=-=-=-=-=-=-=-=-=-= Nova Conersão - Seleção Base Destino =-=-=-=-=-=-=-=-=-=\n");
-		printf("\nBase selecionada  : %d", sourceBase);
-		printf("\nNúmero selecionado: %s\n", previousInputNumber);
-		printf("\nEntre 2 e 16, digite uma base numérica de destino: ");
-		getUserInput(userInputString);
-		stringCounter(1, MAX_STRING_NUMBER, userInputString);
-		charToIntVector(userInputString, stringSize);
-		intVectorToIntNumber(stringSize, 10);
-
-		if (intermediateDecimal == -1) {
-			printf("\nCaracter inválido, insira novamente.\n\n");
-			clearScreen();
-			continue;
-		}
-
-		if (intermediateDecimal > 16) {
-			printf("\nO valor '%d' excede o valor máximo 16 (Hexadecimal), insira outro valor.\n\n", intermediateDecimal);
-			clearScreen();
-			continue;
-		}
-
-		if (intermediateDecimal < 2) {
-			printf("\nO valor '%d' excede o valor mínimo 2 (Binário), insira outro valor.\n\n", intermediateDecimal);
-			clearScreen();
-			continue;
-		}
-
-		if (sourceBase == intermediateDecimal) {
-			printf("\nBase original (%d) e base destino (%d) iguais! Insira outro valor.\n\n", sourceBase, intermediateDecimal);
-			clearScreen();
-			continue;
-		}
-
-		targetBase = intermediateDecimal;
-	}
-
-	/*
-		Transformar o número do usuário atualmente em decimal para a
-		base destino através da divisão sucessiva e guardando o resto da divisão
-	*/
-	decimalToBaseN(finalDecimalInput, targetBase, convertedResultString);
-	printf("\nSeu número foi convertido para %s\n", convertedResultString);
-	addToHistory(sourceBase, previousInputNumber, targetBase, convertedResultString);
-	addToSortedConversion(finalDecimalInput, targetBase, convertedResultString);
-	clearScreen();
-}
-
 void getHistoryValues(int historyPosition) {
 	while (1) {
 		printf("\n%dº posição do histórico\n", historyPosition + 1);
@@ -617,158 +762,4 @@ void showSortedConversionList() {
 	}
 	printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 	clearScreen();
-}
-
-int main() {
-	setlocale(LC_ALL, "portuguese");
-
-	printf("Este é um conversor de números inteiros entre bases numéricas.\n");
-	printf("Ex: base de 2 (0 a 1) a base de 16 (0 a F) números.\n");
-	printf("Você pode pedir uma conversão aleatória como base 6 (0 a 5).\n\n");
-	printf("A conversão é de até %d dígitos para evitar estouro de memória.\n", MAX_STRING_NUMBER);
-	printf("A leitura é realizada da esquerda para direita,\n");
-	printf("Ex: '0123456789abcdefff' será lido '0123456'.\n\n");
-	printf("Não são aceitos valores que excedam a base Hexadecimal,\n");
-	printf("Ex: G a Z ou caracteres como @ . , - e etc.\n\n");
-	printf("Digite exit para sair a qualquer momento.\n");
-	clearScreen();
-
-	while (1) {
-		//Resetando variáveis a serem utilizadas
-		sourceBase = 0, finalDecimalInput = 0, targetBase = 0;
-
-		printf("=-=-=-=-=-=-=-=-=-= Página Inicial =-=-=-=-=-=-=-=-=-=\n");
-		printf("   1 - Nova Conversão\n");
-		printf("   2 - Histórico\n");
-		printf("   3 - Lista ordenada\n");
-		printf("exit - Sair\n");
-		printf("Escolha uma opção: ");
-		getUserInput(userInputString);
-		stringCounter(1, MAX_STRING_NUMBER, userInputString);
-		charToIntVector(userInputString, stringSize);
-		intVectorToIntNumber(stringSize, 10);
-
-		switch (intermediateDecimal) {
-		case 1:
-			printf("\nRealizar nova conversão...\n");
-			clearScreen();
-			//Função para menu de conversão dedicado, evitando identações excessivas
-			newConversionMenu();
-			break;
-		case 2:
-			//Histórico vazio
-			if (conversionHistory[0].sourceBase == 0) {
-				printf("\nHistórico vazio no momento, realize uma nova conversão para visualizar.\n");
-				clearScreen();
-				break;
-			}
-			/*
-				exibir o histórico
-				selecionar posição no histórico
-				escolher entre Entrada ou Resultado
-				pegar o número e a base escolhida
-				realizar nova conversão a partir dos valores selecionados
-			*/
-
-			printf("\nExibir o histórico...\n");
-			clearScreen();
-			if (historyMenu()) {
-				newConversionMenu();
-			}
-			break;
-		case 3:
-			//Lista vazia
-			if (sortedConversionResults[0].targetBase == 0) {
-				printf("\nLista vazia no momento, realize uma nova conversão para vizualizar.\n");
-				clearScreen();
-				break;
-			}
-			/*
-				exibir a lista ordenada
-				selecionar posição na lista
-				escolher entre Entrada ou Saída
-				pegar o número e a base escolhida
-				realizar nova conversão a partir dos valores selecionados
-			*/
-			printf("\nExibir lista ordenada...\n");
-			clearScreen();
-			showSortedConversionList();
-			break;
-		case 4: // Sair
-			exitConveror();
-			break;
-		default:
-			printf("Entrada inválida!\n\n");
-			clearScreen();
-			break;
-		}
-	}
-	printf("sai do main loop sem fechar!");
-	return 0;
-}
-
-//Apenas controlar a "paginação"
-void clearScreen() {
-	system("pause");
-	system("cls");
-}
-
-void exitConveror() {
-	printf("\nEncerrando o programa...\n");
-	exit(0);
-}
-
-/*
-	Vou comentar que apanhei muito pra aprender sobre este buffer em C
-	eu esperava que isso já fosse tratado pelas bibliotecas ou compilador,
-	esta função foi criada especificamente para limpar os inputs do usuário
-	caso ele digite algo inesperado OUUUU de alguma forma leia um arquivo.
-
-	Esta função realiza o "descarte" de tudo que estiver no buffer
-	até ser encontrado uma quebra de linha (\n ou 0X0D0A para Windows) ou fim de arquivo (EOF)
-	para que isto não interfira na próxima leitura de um input do usuário
-	ou cause um loop infinito de um scanf("%d") esperando um tipo inteiro
-	pois há um tipo char esperando alocação no buffer
-
-	Isto poderia ser contornado com fgets e sscanf mas vamos manter as funções aprendidas em aula
-*/
-void clearBuffer() {
-	char clearBuffer;
-	while ((clearBuffer = getchar()) != '\n' && clearBuffer != EOF) {}
-}
-
-//Limpar lixo de memória após um novo registro
-void clearVariable(char *userStr) {
-	int i = 0;
-	
-	//Encontrar o final da entrada
-	for (; i <= (MAX_STRING_NUMBER + 1); i++) {
-
-		//Apagar lixo de memória após o final da entrada
-		if (userStr[i] == '\0') {
-			for (; i <= (MAX_STRING_NUMBER + 1); i++) {
-				userStr[i] = '\0';
-			}
-			return;
-		}
-	}
-}
-
-//Realizando a leitura e manipulação do primeiro vetor através de ponteiros
-void getUserInput(char* userStr) {
-	//Limpando entradas anteriores
-	intermediateDecimal = 0;
-	for (int i = 0; i <= MAX_STRING_NUMBER; i++) {
-		userStr[i] = 0;
-	}
-
-	//Limitando a entrada para sempre ser adicionado '\0' ao final da string/char[]
-	(void)scanf("%7s", userStr);
-	clearVariable(userStr);
-	clearBuffer();
-
-	// Verificando se o usuário digitou exit corretamente para sair
-	if (userStr[0] == 'e' && userStr[1] == 'x' && userStr[2] == 'i' && userStr[3] == 't' && userStr[4] == '\0') {
-		exitConveror();
-	}
 }
